@@ -16,12 +16,15 @@ def gallery_init():
   global gallery_path, gallery, count, index
   gallery = os.listdir(gallery_path)
   count = len(gallery)
-  index = 0
 
 def get_next_image():
   global gallery_path, gallery, index, count
 
+  #reset
+  if index >= count: index = 0
+
   if count == 0: return None
+  print("Loading "+str(index)+": "+gallery[index])
 
   image = Image.open(gallery_path + "/" + gallery[index])
   index += 1
@@ -33,7 +36,11 @@ def get_next_image():
 def get_prev_image():
   global gallery_path, gallery, index, count
 
+  #reset
+  if index >= count: index = 0
+
   if count == 0: return None
+  print("Loading "+str(index)+": "+gallery[index])
 
   image = Image.open(gallery_path + "/" + gallery[index])
   index -= 1
@@ -60,7 +67,8 @@ class Screen(Enum):
   GALLERY = 1,
   PHOTO = 2
 
-ui = Screen.GALLERY
+ui = Screen.LIVE
+redraw = False
 
 def screen_init():
   global epd, font, frame_black, frame_red
@@ -134,6 +142,11 @@ def screen_draw_image(frame, image):
 
 def screen_draw_ui(frame):
   global epd, count, frame_black, frame_red
+  global KEY1, KEY2, KEY3, KEY4, HKEY
+  global redraw
+
+  #avoid useless refreshing
+  redraw = False
 
   if ui == Screen.LIVE:
     screen_draw_text(frame, "TAKE A PHOTO", 35, 20, COLORED, 16)
@@ -155,7 +168,10 @@ def screen_draw_ui(frame):
     if count == 0:
       screen_draw_text(frame, "EMPTY GALLERY", 28, 20, COLORED, 16)
     else:
-      frame_black = screen_draw_image(frame, get_next_image())
+      if HKEY == KEY3:
+        frame_black = screen_draw_image(frame, get_next_image())
+      elif HKEY == KEY4:
+        frame_black = screen_draw_image(frame, get_prev_image())
     screen_display()
 
 #DRAWING
@@ -194,6 +210,7 @@ def keys_init():
 def main():
     global epd, frame_black, frame_red
     global KEY1, KEY2, KEY3, KEY4, HKEY
+    global redraw, ui
 
     keys_init()
     gallery_init()
@@ -201,49 +218,37 @@ def main():
     screen_init()
     screen_draw_welcome(frame_black)
     screen_sleep(2000)
-    screen_clear()
-    screen_draw_ui(frame_black)
+    
+    #first ui draw
+    redraw = True
 
     while True:
       #key routine
       if HKEY == KEY1:
         print("TRIGGER")
-        HKEY = 0
       elif HKEY == KEY2:
         print("CLEAR")
-        HKEY = 0
+        if ui != Screen.LIVE:
+          ui = Screen.LIVE
+          redraw = True
       elif HKEY == KEY3:
         print("NEXT");
-        HKEY = 0
+        ui = Screen.GALLERY
+        redraw = True
       elif HKEY == KEY4:
         print("PREV");
-        HKEY = 0
+        ui = Screen.GALLERY
+        redraw = True
       else:
         HKEY = 0
 
-    # For simplicity, the arguments are explicit numerical coordinates
-    #epd.draw_rectangle(frame_black, 10, 130, 50, 180, COLORED)
-    #epd.draw_line(frame_black, 10, 130, 50, 180, COLORED)
-    #epd.draw_line(frame_black, 50, 130, 10, 180, COLORED)
-    #epd.draw_circle(frame_black, 120, 150, 30, COLORED)
-    #epd.draw_filled_rectangle(frame_red, 10, 200, 50, 250, COLORED)
-    #epd.draw_filled_rectangle(frame_red, 0, 76, 176, 96, COLORED)
-    #epd.draw_filled_circle(frame_red, 120, 220, 30, COLORED)
+      #refresh ui
+      if redraw:
+        screen_clear()
+        screen_draw_ui(frame_black)
 
-    # draw strings to the buffer
-    #font = ImageFont.truetype('/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf', 18)
-    #epd.draw_string_at(frame_black, 4, 50, "e-Paper Demo", font, COLORED)
-    #epd.draw_string_at(frame_red, 18, 80, "Hello world!", font, UNCOLORED)
-    # display the frames
-    #epd.display_frame(frame_black, frame_red)
-
-    # display images
-    #frame_black = epd.get_frame_buffer(Image.open('black.bmp'))
-    #frame_red = epd.get_frame_buffer(Image.open('red.bmp'))
-    #epd.display_frame(frame_black, frame_red)
-
-    # You can get frame buffer from an image or import the buffer directly:
-    #epd.display_frame(imagedata.IMAGE_BLACK, imagedata.IMAGE_RED)
+      #clear key
+      HKEY = 0
 
 if __name__ == '__main__':
     main()
