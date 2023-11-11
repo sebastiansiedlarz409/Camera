@@ -3,6 +3,45 @@ from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 from enum import Enum
+import os
+
+#GALLERY
+gallery_path = "GALLERY/black"
+index = 0
+count = 0
+gallery = []
+
+def gallery_init():
+  global gallery_path, gallery, count, index
+  gallery = os.listdir(gallery_path)
+  count = len(gallery)
+  index = 0
+
+def get_next_image():
+  global gallery_path, gallery, index, count
+
+  if count == 0: return None
+
+  image = Image.open(gallery_path + "/" + gallery[index])
+  index += 1
+
+  if index >= count: index = 0
+
+  return image
+
+def get_prev_image():
+  global gallery_path, gallery, index, count
+
+  if count == 0: return None
+
+  image = Image.open(gallery_path + "/" + gallery[index])
+  index -= 1
+
+  if index < 0: index = count - 1
+
+  return image
+
+#GALLERY
 
 #DRAWING
 
@@ -20,7 +59,7 @@ class Screen(Enum):
   GALLERY = 1,
   PHOTO = 2
 
-ui = Screen.LIVE
+ui = Screen.GALLERY
 
 def screen_init():
   global epd, font, frame_black, frame_red
@@ -73,9 +112,12 @@ def screen_draw_welcome(frame):
   global epd
   screen_draw_text(frame, "SMILE", 50, 10, COLORED, 25)
   screen_draw_circle(frame, 90, 160, 80, COLORED, False)
+  screen_draw_circle(frame, 90, 160, 81, COLORED, False)
+  screen_draw_circle(frame, 90, 160, 82, COLORED, False)
 
   #smile
   screen_draw_circle(frame, 90, 160, 55, COLORED, False)
+  screen_draw_circle(frame, 90, 160, 54, COLORED, False)
   screen_draw_rectangle(frame, 40, 95, 140, 160, UNCOLORED, True)
 
   #eyes
@@ -83,14 +125,21 @@ def screen_draw_welcome(frame):
   screen_draw_circle(frame, 130, 120, 5, COLORED, True)
   screen_display()
 
-def screen_draw_ui(frame):
+def screen_draw_image(frame, image):
   global epd
+
+  frame = epd.get_frame_buffer(image)
+  return frame
+
+def screen_draw_ui(frame):
+  global epd, count, frame_black, frame_red
 
   if ui == Screen.LIVE:
     screen_draw_text(frame, "TAKE A PHOTO", 35, 20, COLORED, 16)
     screen_draw_text(frame, "AND WAIT", 50, 40, COLORED, 16)
 
     screen_draw_line(frame, 90, 60, 15, 245, COLORED)
+    screen_draw_line(frame, 89, 60, 14, 245, COLORED)
     screen_draw_line(frame, 15, 245, 6, 225, COLORED)
     screen_draw_line(frame, 15, 245, 39, 234, COLORED)
 
@@ -99,12 +148,22 @@ def screen_draw_ui(frame):
     screen_draw_text(frame, "LEFT", 105, 255, COLORED, 10)
     screen_draw_text(frame, "RIGHT", 145, 255, COLORED, 10)
     screen_display()
+  elif ui == Screen.GALLERY:
+    gallery_init()
+    screen_clear()
+    if count == 0:
+      screen_draw_text(frame, "EMPTY GALLERY", 28, 20, COLORED, 16)
+    else:
+      frame_black = screen_draw_image(frame, get_next_image())
+    screen_display()
 
 #DRAWING
 
 
 def main():
     global epd, frame_black, frame_red
+
+    gallery_init()
 
     screen_init()
     screen_draw_welcome(frame_black)
