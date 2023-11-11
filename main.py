@@ -4,6 +4,7 @@ from PIL import ImageFont
 from PIL import ImageDraw
 from enum import Enum
 import os
+import RPi.GPIO as GPIO
 
 #GALLERY
 gallery_path = "GALLERY/black"
@@ -159,10 +160,42 @@ def screen_draw_ui(frame):
 
 #DRAWING
 
+#KEYS
+
+HKEY = 0
+
+KEY1 = 5
+KEY2 = 6
+KEY3 = 13
+KEY4 = 19
+
+def keys_interrupt(channel):
+  global HKEY
+  if HKEY == 0:
+    HKEY = channel
+
+def keys_init():
+  global KEY1, KEY2, KEY3, KEY4
+
+  GPIO.setmode(GPIO.BCM)
+
+  GPIO.setup(KEY1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(KEY2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(KEY3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+  GPIO.setup(KEY4, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+  GPIO.add_event_detect(KEY1, GPIO.FALLING, callback=keys_interrupt, bouncetime=200)
+  GPIO.add_event_detect(KEY2, GPIO.FALLING, callback=keys_interrupt, bouncetime=200)
+  GPIO.add_event_detect(KEY3, GPIO.FALLING, callback=keys_interrupt, bouncetime=200)
+  GPIO.add_event_detect(KEY4, GPIO.FALLING, callback=keys_interrupt, bouncetime=200)
+
+#KEYS
 
 def main():
     global epd, frame_black, frame_red
+    global KEY1, KEY2, KEY3, KEY4, HKEY
 
+    keys_init()
     gallery_init()
 
     screen_init()
@@ -170,6 +203,23 @@ def main():
     screen_sleep(2000)
     screen_clear()
     screen_draw_ui(frame_black)
+
+    while True:
+      #key routine
+      if HKEY == KEY1:
+        print("TRIGGER")
+        HKEY = 0
+      elif HKEY == KEY2:
+        print("CLEAR")
+        HKEY = 0
+      elif HKEY == KEY3:
+        print("NEXT");
+        HKEY = 0
+      elif HKEY == KEY4:
+        print("PREV");
+        HKEY = 0
+      else:
+        HKEY = 0
 
     # For simplicity, the arguments are explicit numerical coordinates
     #epd.draw_rectangle(frame_black, 10, 130, 50, 180, COLORED)
