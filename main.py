@@ -2,6 +2,7 @@ import epd2in7b
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
+from enum import Enum
 
 #DRAWING
 
@@ -14,6 +15,13 @@ epd = None
 frame_black = []
 frame_red = []
 
+class Screen(Enum):
+  LIVE = 0,
+  GALLERY = 1,
+  PHOTO = 2
+
+ui = Screen.LIVE
+
 def screen_init():
   global epd, font, frame_black, frame_red
   epd = epd2in7b.EPD()
@@ -23,20 +31,74 @@ def screen_init():
   frame_black = [0] * int(epd.width * epd.height / 8)
   frame_red = [0] * int(epd.width * epd.height / 8)
 
+def screen_sleep(t):
+  global epd
+  epd.delay_ms(t)
+
+def screen_clear():
+  global epd, frame_black, frame_red
+  for i in range(0, len(frame_black)):
+    frame_black[i] = 0
+    frame_red[i] = 0
+
 def screen_display():
   global epd, frame_black, frame_red
   epd.display_frame(frame_black, frame_red)
 
-def screen_draw_text(epd, frame, text, x, y, color, font_size):
-  global font_path
+def screen_draw_text(frame, text, x, y, color, font_size):
+  global epd, font_path
   font = ImageFont.truetype(font_path, font_size)
 
   epd.draw_string_at(frame, x, y, text, font, color)
+
+def screen_draw_line(frame, x1, y1, x2, y2, color):
+  global epd
+  epd.draw_line(frame, x1, y1, x2, y2, color)
+
+def screen_draw_rectangle(frame, x1, y1, x2, y2, color, filled):
+  global epd
+  if filled:
+    epd.draw_filled_rectangle(frame, x1, y1, x2, y2, color)
+  else:
+    epd.draw_rectangle(frame, x1, y1, x2, y2, color)
+
+def screen_draw_circle(frame, x, y, r, color, filled):
+  global epd
+  if filled:
+    epd.draw_filled_circle(frame, x, y, r, color)
+  else:
+    epd.draw_circle(frame, x, y, r, color)
+
+def screen_draw_welcome(frame):
+  global epd
+  screen_draw_text(frame, "SMILE", 50, 10, COLORED, 25)
+  screen_draw_circle(frame, 90, 160, 80, COLORED, False)
+
+  #smile
+  screen_draw_circle(frame, 90, 160, 55, COLORED, False)
+  screen_draw_rectangle(frame, 40, 95, 140, 160, UNCOLORED, True)
+
+  #eyes
+  screen_draw_circle(frame, 50, 120, 5, COLORED, True)
+  screen_draw_circle(frame, 130, 120, 5, COLORED, True)
   screen_display()
 
-def screen_draw_welcome(epd, frame):
-  screen_draw_text(epd, frame, "TEST", 0, 0, COLORED, 12)
+def screen_draw_ui(frame):
+  global epd
 
+  if ui == Screen.LIVE:
+    screen_draw_text(frame, "TAKE A PHOTO", 35, 20, COLORED, 16)
+    screen_draw_text(frame, "AND WAIT", 50, 40, COLORED, 16)
+
+    screen_draw_line(frame, 90, 60, 15, 245, COLORED)
+    screen_draw_line(frame, 15, 245, 6, 225, COLORED)
+    screen_draw_line(frame, 15, 245, 39, 234, COLORED)
+
+    screen_draw_text(frame, "TRIGGER", 5, 255, COLORED, 10)
+    screen_draw_text(frame, "CLEAR", 60, 255, COLORED, 10)
+    screen_draw_text(frame, "LEFT", 105, 255, COLORED, 10)
+    screen_draw_text(frame, "RIGHT", 145, 255, COLORED, 10)
+    screen_display()
 
 #DRAWING
 
@@ -45,7 +107,10 @@ def main():
     global epd, frame_black, frame_red
 
     screen_init()
-    screen_draw_welcome(epd, frame_black)
+    screen_draw_welcome(frame_black)
+    screen_sleep(2000)
+    screen_clear()
+    screen_draw_ui(frame_black)
 
     # For simplicity, the arguments are explicit numerical coordinates
     #epd.draw_rectangle(frame_black, 10, 130, 50, 180, COLORED)
