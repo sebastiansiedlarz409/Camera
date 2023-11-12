@@ -8,6 +8,7 @@ import RPi.GPIO as GPIO
 
 #GALLERY
 gallery_path = "GALLERY/black"
+gallery_normal_path = "GALLERY/norm"
 index = 0
 count = 0
 gallery = []
@@ -16,6 +17,12 @@ def gallery_init():
   global gallery_path, gallery, count, index
   gallery = os.listdir(gallery_path)
   count = len(gallery)
+
+def gallery_black(name):
+  global gallery_normal_path, gallery_path
+  image = Image.open(gallery_normal_path+"/"+name).convert('L')
+  image = image.resize((176, 264))
+  image.save(gallery_path+"/"+name, "BMP")
 
 def get_next_image():
   global gallery_path, gallery, index, count
@@ -242,6 +249,7 @@ def main():
 
     keys_init()
     gallery_init()
+    gallery_black("asd.jpg")
 
     screen_init()
     screen_draw_welcome(frame_black)
