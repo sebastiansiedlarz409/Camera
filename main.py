@@ -103,6 +103,14 @@ def screen_draw_line(frame, x1, y1, x2, y2, color):
   global epd
   epd.draw_line(frame, x1, y1, x2, y2, color)
 
+def screen_draw_vline(frame, x, y, height, colored):
+  global epd
+  epd.draw_vertical_line(frame, x, y, height, colored)
+
+def screen_draw_hline(frame, x, y, width, colored):
+  global epd
+  epd.draw_horizontal_line(frame, x, y, width, colored)
+
 def screen_draw_rectangle(frame, x1, y1, x2, y2, color, filled):
   global epd
   if filled:
@@ -149,18 +157,38 @@ def screen_draw_ui(frame):
   redraw = False
 
   if ui == Screen.LIVE:
+    screen_draw_rectangle(frame, 30, 15, 155, 60, COLORED, False)
+    screen_draw_rectangle(frame, 31, 16, 154, 59, COLORED, False)
     screen_draw_text(frame, "TAKE A PHOTO", 35, 20, COLORED, 16)
     screen_draw_text(frame, "AND WAIT", 50, 40, COLORED, 16)
+    screen_draw_hline(frame,20, 38, 10, COLORED)
+    screen_draw_hline(frame,20, 39, 10, COLORED)
+    screen_draw_vline(frame,20, 39, 210, COLORED)
+    screen_draw_vline(frame,21, 39, 210, COLORED)
 
-    screen_draw_line(frame, 90, 60, 15, 245, COLORED)
-    screen_draw_line(frame, 89, 60, 14, 245, COLORED)
-    screen_draw_line(frame, 15, 245, 6, 225, COLORED)
-    screen_draw_line(frame, 15, 245, 39, 234, COLORED)
+    screen_draw_rectangle(frame, 70, 75, 170, 120, COLORED, False)
+    screen_draw_rectangle(frame, 71, 76, 169, 119, COLORED, False)
+    screen_draw_text(frame, "BACK TO", 90, 80, COLORED, 16)
+    screen_draw_text(frame, "MAIN VIEW", 80, 100, COLORED, 16)
+    screen_draw_hline(frame,60, 98, 10, COLORED)
+    screen_draw_hline(frame,60, 99, 10, COLORED)
+    screen_draw_vline(frame,60, 99, 150, COLORED)
+    screen_draw_vline(frame,61, 99, 150, COLORED)
 
-    screen_draw_text(frame, "TRIGGER", 5, 255, COLORED, 10)
-    screen_draw_text(frame, "CLEAR", 60, 255, COLORED, 10)
-    screen_draw_text(frame, "LEFT", 105, 255, COLORED, 10)
-    screen_draw_text(frame, "RIGHT", 145, 255, COLORED, 10)
+    screen_draw_rectangle(frame, 85, 155, 165, 200, COLORED, False)
+    screen_draw_rectangle(frame, 86, 156, 164, 199, COLORED, False)
+    screen_draw_text(frame, "GALLERY", 90, 160, COLORED, 16)
+    screen_draw_text(frame, "NAVIG.", 100, 180, COLORED, 16)
+    screen_draw_vline(frame, 105, 200, 50, COLORED)
+    screen_draw_vline(frame, 106, 200, 50, COLORED)
+    screen_draw_vline(frame, 150, 200, 50, COLORED)
+    screen_draw_vline(frame, 151, 200, 50, COLORED)
+
+    screen_draw_text(frame, "SHOT", 8, 250, COLORED, 13)
+    screen_draw_text(frame, "BACK", 50, 250, COLORED, 13)
+    screen_draw_text(frame, "NEXT", 95, 250, COLORED, 13)
+    screen_draw_text(frame, "PREV", 140, 250, COLORED, 13)
+
     screen_display()
   elif ui == Screen.GALLERY:
     gallery_init()
@@ -218,16 +246,16 @@ def main():
     screen_init()
     screen_draw_welcome(frame_black)
     screen_sleep(2000)
-    
+
     #first ui draw
     redraw = True
 
     while True:
       #key routine
       if HKEY == KEY1:
-        print("TRIGGER")
+        print("SHOT")
       elif HKEY == KEY2:
-        print("CLEAR")
+        print("BACK")
         if ui != Screen.LIVE:
           ui = Screen.LIVE
           redraw = True
