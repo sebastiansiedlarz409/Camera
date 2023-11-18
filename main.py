@@ -63,11 +63,10 @@ def get_prev_image():
 COLORED = 1
 UNCOLORED = 0
 
-font_path = '/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf'
+base_font = '/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf'
 
-epd = None
-frame_black = []
-frame_red = []
+epd = epd2in7b.EPD()
+frame = []
 
 class Screen(Enum):
   LIVE = 0,
@@ -77,86 +76,71 @@ class Screen(Enum):
 ui = Screen.LIVE
 redraw = False
 
-def screen_init():
-  global epd, font, frame_black, frame_red
-  epd = epd2in7b.EPD()
+def screen_init(epd, frame):
   epd.init()
 
   # clear the frame buffer
-  frame_black = [0] * int(epd.width * epd.height / 8)
-  frame_red = [0] * int(epd.width * epd.height / 8)
+  for i in range(0, int(epd.width * epd.height / 8)):
+    frame.append(0)
 
-def screen_sleep(t):
-  global epd
+def screen_sleep(epd, t):
   epd.delay_ms(t)
 
-def screen_clear():
-  global epd, frame_black, frame_red
-  for i in range(0, len(frame_black)):
-    frame_black[i] = 0
-    frame_red[i] = 0
+def screen_clear(epd, frame):
+  for i in range(0, len(frame)):
+    frame[i] = 0
 
-def screen_display():
-  global epd, frame_black, frame_red
-  epd.display_frame(frame_black, frame_red)
+def screen_display(epd, frame):
+  epd.display_frame(frame)
 
-def screen_draw_text(frame, text, x, y, color, font_size):
-  global epd, font_path
+def screen_draw_text(epd, frame, font_path, text, x, y, color, font_size):
   font = ImageFont.truetype(font_path, font_size)
 
   epd.draw_string_at(frame, x, y, text, font, color)
 
-def screen_draw_line(frame, x1, y1, x2, y2, color):
-  global epd
+def screen_draw_line(epd, frame, x1, y1, x2, y2, color):
   epd.draw_line(frame, x1, y1, x2, y2, color)
 
-def screen_draw_vline(frame, x, y, height, colored):
-  global epd
+def screen_draw_vline(epd, frame, x, y, height, colored):
   epd.draw_vertical_line(frame, x, y, height, colored)
 
-def screen_draw_hline(frame, x, y, width, colored):
-  global epd
+def screen_draw_hline(epd, frame, x, y, width, colored):
   epd.draw_horizontal_line(frame, x, y, width, colored)
 
-def screen_draw_rectangle(frame, x1, y1, x2, y2, color, filled):
-  global epd
+def screen_draw_rectangle(epd, frame, x1, y1, x2, y2, color, filled):
   if filled:
     epd.draw_filled_rectangle(frame, x1, y1, x2, y2, color)
   else:
     epd.draw_rectangle(frame, x1, y1, x2, y2, color)
 
-def screen_draw_circle(frame, x, y, r, color, filled):
-  global epd
+def screen_draw_circle(epd, frame, x, y, r, color, filled):
   if filled:
     epd.draw_filled_circle(frame, x, y, r, color)
   else:
     epd.draw_circle(frame, x, y, r, color)
 
-def screen_draw_welcome(frame):
-  global epd
-  screen_draw_text(frame, "SMILE", 50, 10, COLORED, 25)
-  screen_draw_circle(frame, 90, 160, 80, COLORED, False)
-  screen_draw_circle(frame, 90, 160, 81, COLORED, False)
-  screen_draw_circle(frame, 90, 160, 82, COLORED, False)
+def screen_draw_welcome(epd, frame):
+  screen_draw_text(epd, frame, base_font, "SMILE", 50, 10, COLORED, 25)
+  screen_draw_circle(epd, frame, 90, 160, 80, COLORED, False)
+  screen_draw_circle(epd, frame, 90, 160, 81, COLORED, False)
+  screen_draw_circle(epd, frame, 90, 160, 82, COLORED, False)
 
   #smile
-  screen_draw_circle(frame, 90, 160, 55, COLORED, False)
-  screen_draw_circle(frame, 90, 160, 54, COLORED, False)
-  screen_draw_rectangle(frame, 40, 95, 140, 160, UNCOLORED, True)
+  screen_draw_circle(epd, frame, 90, 160, 55, COLORED, False)
+  screen_draw_circle(epd, frame, 90, 160, 54, COLORED, False)
+  screen_draw_rectangle(epd, frame, 40, 95, 140, 160, UNCOLORED, True)
 
   #eyes
-  screen_draw_circle(frame, 50, 120, 5, COLORED, True)
-  screen_draw_circle(frame, 130, 120, 5, COLORED, True)
-  screen_display()
+  screen_draw_circle(epd, frame, 50, 120, 5, COLORED, True)
+  screen_draw_circle(epd, frame, 130, 120, 5, COLORED, True)
+  screen_display(epd, frame)
 
-def screen_draw_image(frame, image):
-  global epd
-
+def screen_draw_image(epd, image):
   frame = epd.get_frame_buffer(image)
   return frame
 
-def screen_draw_ui(frame):
-  global epd, count, frame_black, frame_red
+def screen_draw_ui(epd, frame):
+  global  count
   global KEY1, KEY2, KEY3, KEY4, HKEY
   global redraw
 
@@ -164,50 +148,50 @@ def screen_draw_ui(frame):
   redraw = False
 
   if ui == Screen.LIVE:
-    screen_draw_rectangle(frame, 30, 15, 155, 60, COLORED, False)
-    screen_draw_rectangle(frame, 31, 16, 154, 59, COLORED, False)
-    screen_draw_text(frame, "TAKE A PHOTO", 35, 20, COLORED, 16)
-    screen_draw_text(frame, "AND WAIT", 50, 40, COLORED, 16)
-    screen_draw_hline(frame,20, 38, 10, COLORED)
-    screen_draw_hline(frame,20, 39, 10, COLORED)
-    screen_draw_vline(frame,20, 39, 210, COLORED)
-    screen_draw_vline(frame,21, 39, 210, COLORED)
+    screen_draw_rectangle(epd, frame, 30, 15, 155, 60, COLORED, False)
+    screen_draw_rectangle(epd, frame, 31, 16, 154, 59, COLORED, False)
+    screen_draw_text(epd, frame, base_font, "TAKE A PHOTO", 35, 20, COLORED, 16)
+    screen_draw_text(epd, frame, base_font, "AND WAIT", 50, 40, COLORED, 16)
+    screen_draw_hline(epd, frame,20, 38, 10, COLORED)
+    screen_draw_hline(epd, frame,20, 39, 10, COLORED)
+    screen_draw_vline(epd, frame,20, 39, 210, COLORED)
+    screen_draw_vline(epd, frame,21, 39, 210, COLORED)
 
-    screen_draw_rectangle(frame, 70, 75, 170, 120, COLORED, False)
-    screen_draw_rectangle(frame, 71, 76, 169, 119, COLORED, False)
-    screen_draw_text(frame, "BACK TO", 90, 80, COLORED, 16)
-    screen_draw_text(frame, "MAIN VIEW", 80, 100, COLORED, 16)
-    screen_draw_hline(frame,60, 98, 10, COLORED)
-    screen_draw_hline(frame,60, 99, 10, COLORED)
-    screen_draw_vline(frame,60, 99, 150, COLORED)
-    screen_draw_vline(frame,61, 99, 150, COLORED)
+    screen_draw_rectangle(epd, frame, 70, 75, 170, 120, COLORED, False)
+    screen_draw_rectangle(epd, frame, 71, 76, 169, 119, COLORED, False)
+    screen_draw_text(epd, frame, base_font, "BACK TO", 90, 80, COLORED, 16)
+    screen_draw_text(epd, frame, base_font, "MAIN VIEW", 80, 100, COLORED, 16)
+    screen_draw_hline(epd, frame,60, 98, 10, COLORED)
+    screen_draw_hline(epd, frame,60, 99, 10, COLORED)
+    screen_draw_vline(epd, frame,60, 99, 150, COLORED)
+    screen_draw_vline(epd, frame,61, 99, 150, COLORED)
 
-    screen_draw_rectangle(frame, 85, 155, 165, 200, COLORED, False)
-    screen_draw_rectangle(frame, 86, 156, 164, 199, COLORED, False)
-    screen_draw_text(frame, "GALLERY", 90, 160, COLORED, 16)
-    screen_draw_text(frame, "NAVIG.", 100, 180, COLORED, 16)
-    screen_draw_vline(frame, 105, 200, 50, COLORED)
-    screen_draw_vline(frame, 106, 200, 50, COLORED)
-    screen_draw_vline(frame, 150, 200, 50, COLORED)
-    screen_draw_vline(frame, 151, 200, 50, COLORED)
+    screen_draw_rectangle(epd, frame, 85, 155, 165, 200, COLORED, False)
+    screen_draw_rectangle(epd, frame, 86, 156, 164, 199, COLORED, False)
+    screen_draw_text(epd, frame, base_font, "GALLERY", 90, 160, COLORED, 16)
+    screen_draw_text(epd, frame, base_font, "NAVIG.", 100, 180, COLORED, 16)
+    screen_draw_vline(epd, frame, 105, 200, 50, COLORED)
+    screen_draw_vline(epd, frame, 106, 200, 50, COLORED)
+    screen_draw_vline(epd, frame, 150, 200, 50, COLORED)
+    screen_draw_vline(epd, frame, 151, 200, 50, COLORED)
 
-    screen_draw_text(frame, "SHOT", 8, 250, COLORED, 13)
-    screen_draw_text(frame, "BACK", 50, 250, COLORED, 13)
-    screen_draw_text(frame, "NEXT", 95, 250, COLORED, 13)
-    screen_draw_text(frame, "PREV", 140, 250, COLORED, 13)
+    screen_draw_text(epd, frame, base_font, "SHOT", 8, 250, COLORED, 13)
+    screen_draw_text(epd, frame, base_font, "BACK", 50, 250, COLORED, 13)
+    screen_draw_text(epd, frame, base_font, "NEXT", 95, 250, COLORED, 13)
+    screen_draw_text(epd, frame, base_font, "PREV", 140, 250, COLORED, 13)
 
-    screen_display()
+    screen_display(epd, frame)
   elif ui == Screen.GALLERY:
     gallery_init()
-    screen_clear()
+    screen_clear(epd, frame)
     if count == 0:
-      screen_draw_text(frame, "EMPTY GALLERY", 28, 20, COLORED, 16)
+      screen_draw_text(epd, frame, base_font, "EMPTY GALLERY", 28, 20, COLORED, 16)
     else:
       if HKEY == KEY3:
-        frame_black = screen_draw_image(frame, get_next_image())
+        frame = screen_draw_image(epd, get_next_image())
       elif HKEY == KEY4:
-        frame_black = screen_draw_image(frame, get_prev_image())
-    screen_display()
+        frame = screen_draw_image(epd, get_prev_image())
+    screen_display(epd, frame)
 
 #DRAWING
 
@@ -243,17 +227,21 @@ def keys_init():
 #KEYS
 
 def main():
-    global epd, frame_black, frame_red
+    global epd, frame
     global KEY1, KEY2, KEY3, KEY4, HKEY
     global redraw, ui
 
+    #init keys
     keys_init()
-    gallery_init()
-    gallery_black("asd.jpg")
 
-    screen_init()
-    screen_draw_welcome(frame_black)
-    screen_sleep(2000)
+    #init images
+    gallery_init()
+    #gallery_black("qwe.jpg")
+
+    #init screen
+    screen_init(epd, frame)
+    screen_draw_welcome(epd, frame)
+    screen_sleep(epd, 2000)
 
     #first ui draw
     redraw = True
@@ -280,8 +268,8 @@ def main():
 
       #refresh ui
       if redraw:
-        screen_clear()
-        screen_draw_ui(frame_black)
+        screen_clear(epd, frame)
+        screen_draw_ui(epd, frame)
 
       #clear key
       HKEY = 0

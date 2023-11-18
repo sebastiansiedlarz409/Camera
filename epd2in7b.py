@@ -1,29 +1,3 @@
-##
- #  @filename   :   epd2in7b.py
- #  @brief      :   Implements for Dual-color e-paper library
- #  @author     :   Yehui from Waveshare
- #
- #  Copyright (C) Waveshare     July 31 2017
- #
- # Permission is hereby granted, free of charge, to any person obtaining a copy
- # of this software and associated documnetation files (the "Software"), to deal
- # in the Software without restriction, including without limitation the rights
- # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- # copies of the Software, and to permit persons to  whom the Software is
- # furished to do so, subject to the following conditions:
- #
- # The above copyright notice and this permission notice shall be included in
- # all copies or substantial portions of the Software.
- #
- # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- # FITNESS OR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- # LIABILITY WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- # THE SOFTWARE.
- #
-
 import epdif
 from PIL import Image
 from PIL import ImageDraw
@@ -154,14 +128,10 @@ class EPD:
 
     def send_command(self, command):
         self.digital_write(self.dc_pin, GPIO.LOW)
-        # the parameter type is list but not int
-        # so use [command] instead of command
         epdif.spi_transfer([command])
 
     def send_data(self, data):
         self.digital_write(self.dc_pin, GPIO.HIGH)
-        # the parameter type is list but not int
-        # so use [data] instead of data
         epdif.spi_transfer([data])
 
     def init(self):
@@ -174,7 +144,7 @@ class EPD:
 
         self.send_command(PANEL_SETTING)
         self.send_data(0xaf)        #KW-BF   KWR-AF    BWROTP 0f
-        
+
         self.send_command(PLL_CONTROL)
         self.send_data(0x3a)       #3A 100HZ   29 150Hz 39 200HZ    31 171HZ
 
@@ -204,7 +174,7 @@ class EPD:
         self.send_command(0xF8)
         self.send_data(0x90)
         self.send_data(0x00)
-        
+
         # Power optimization
         self.send_command(0xF8)
         self.send_data(0x93)
@@ -216,14 +186,14 @@ class EPD:
         self.send_data(0x41)
 
         self.send_command(VCM_DC_SETTING_REGISTER)
-        self.send_data(0x12)                   
+        self.send_data(0x12)
         self.send_command(VCOM_AND_DATA_INTERVAL_SETTING)
         self.send_data(0x87)        # define by OTP
 
         self.set_lut()
 
         self.send_command(PARTIAL_DISPLAY_REFRESH)
-        self.send_data(0x00)        
+        self.send_data(0x00)
 
         return 0
 
@@ -235,17 +205,17 @@ class EPD:
         self.digital_write(self.reset_pin, GPIO.LOW)         # module reset
         self.delay_ms(200)
         self.digital_write(self.reset_pin, GPIO.HIGH)
-        self.delay_ms(200)    
+        self.delay_ms(200)
 
     def set_lut(self):
         self.send_command(LUT_FOR_VCOM)               # vcom
         for count in range(0, 44):
             self.send_data(self.lut_vcom_dc[count])
-        
+
         self.send_command(LUT_WHITE_TO_WHITE)         # ww --
         for count in range(0, 42):
             self.send_data(self.lut_ww[count])
-        
+
         self.send_command(LUT_BLACK_TO_WHITE)         # bw r
         for count in range(0, 42):
             self.send_data(self.lut_bw[count])
@@ -260,8 +230,6 @@ class EPD:
 
     def get_frame_buffer(self, image):
         buf = [0xFF] * int(self.width * self.height / 8)
-        # Set buffer to value of Python Imaging Library image.
-        # Image must be in mode 1.
         image_monocolor = image.convert('1')
         imwidth, imheight = image_monocolor.size
         if imwidth != self.width or imheight != self.height:
@@ -271,39 +239,42 @@ class EPD:
         pixels = image_monocolor.load()
         for y in range(self.height):
             for x in range(self.width):
-                # Set the bits for the column of pixels at the current position.
                 if pixels[x, y] != 0:
                     buf[int((x + y * self.width) / 8)] &= ~(0x80 >> (x % 8))
         return buf
 
-    def display_frame(self, frame_buffer_black, frame_buffer_red):
+    def display_part_frame(self, x, y, w, h, frame):
         self.send_command(TCON_RESOLUTION)
         self.send_data(EPD_WIDTH >> 8)
         self.send_data(EPD_WIDTH & 0xff)        #176      
         self.send_data(EPD_HEIGHT >> 8)        
         self.send_data(EPD_HEIGHT & 0xff)       #264
 
-        if (frame_buffer_black != None):
+        if (frame != None):
+            self.send_command(PARTIAL_START_TRANSMISSION_1)
+
+    def display_frame(self, frame):
+        self.send_command(TCON_RESOLUTION)
+        self.send_data(EPD_WIDTH >> 8)
+        self.send_data(EPD_WIDTH & 0xff)        #176      
+        self.send_data(EPD_HEIGHT >> 8)        
+        self.send_data(EPD_HEIGHT & 0xff)       #264
+
+        if (frame != None):
             self.send_command(DATA_START_TRANSMISSION_1)           
             self.delay_ms(2)
             for i in range(0, int(self.width * self.height / 8)):
-                self.send_data(frame_buffer_black[i])  
-            self.delay_ms(2)                  
-        if (frame_buffer_red != None):
+                self.send_data(frame[i])  
+            self.delay_ms(2)
             self.send_command(DATA_START_TRANSMISSION_2)
             self.delay_ms(2)
             for i in range(0, int(self.width * self.height / 8)):
-                self.send_data(frame_buffer_red[i])  
-            self.delay_ms(2)        
+                self.send_data(0)  
+            self.delay_ms(2) 
 
         self.send_command(DISPLAY_REFRESH) 
         self.wait_until_idle()
 
-    # After this command is transmitted, the chip would enter the deep-sleep
-    # mode to save power. The deep sleep mode would return to standby by
-    # hardware reset. The only one parameter is a check code, the command would
-    # be executed if check code = 0xA5. 
-    # Use EPD::Reset() to awaken and use EPD::Init() to initialize.
     def sleep(self):
         self.send_command(DEEP_SLEEP)
         self.send_data(0xa5)
@@ -347,9 +318,6 @@ class EPD:
             self.set_absolute_pixel(frame_buffer, x, y, colored)
     
     def set_absolute_pixel(self, frame_buffer, x, y, colored):
-        # To avoid display orientation effects
-        # use EPD_WIDTH instead of self.width
-        # use EPD_HEIGHT instead of self.height
         if (x < 0 or x >= EPD_WIDTH or y < 0 or y >= EPD_HEIGHT):
             return
         if (colored):
@@ -361,17 +329,13 @@ class EPD:
         image = Image.new('1', (self.width, self.height))
         draw = ImageDraw.Draw(image)
         draw.text((x, y), text, font = font, fill = 255)
-        # Set buffer to value of Python Imaging Library image.
-        # Image must be in mode 1.
         pixels = image.load()
         for y in range(self.height):
             for x in range(self.width):
-                # Set the bits for the column of pixels at the current position.
                 if pixels[x, y] != 0:
                     self.set_pixel(frame_buffer, x, y, colored)
 
     def draw_line(self, frame_buffer, x0, y0, x1, y1, colored):
-        # Bresenham algorithm
         dx = abs(x1 - x0)
         sx = 1 if x0 < x1 else -1
         dy = -abs(y1 - y0)
@@ -413,7 +377,6 @@ class EPD:
             self.draw_vertical_line(frame_buffer, i, min_y, max_y - min_y + 1, colored)
 
     def draw_circle(self, frame_buffer, x, y, radius, colored):
-        # Bresenham algorithm
         x_pos = -radius
         y_pos = 0
         err = 2 - 2 * radius
@@ -437,7 +400,6 @@ class EPD:
                 break
 
     def draw_filled_circle(self, frame_buffer, x, y, radius, colored):
-        # Bresenham algorithm
         x_pos = -radius
         y_pos = 0
         err = 2 - 2 * radius
@@ -461,5 +423,3 @@ class EPD:
                 err += x_pos * 2 + 1
             if x_pos > 0:
                 break
-
-### END OF FILE ###
