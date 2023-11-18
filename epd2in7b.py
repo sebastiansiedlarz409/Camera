@@ -243,7 +243,25 @@ class EPD:
                     buf[int((x + y * self.width) / 8)] &= ~(0x80 >> (x % 8))
         return buf
 
-    def display_part_frame(self, x, y, w, h, frame):
+    def get_partial_buffer(self, frame, x, y, w, h):
+        buffer = []
+
+        #start=x,y
+        # ---------------
+        #|               |
+        #|               | L
+        #|               |
+        # ---------------
+        #        W
+
+        for j in range(0, h):
+            start = (y+j)*int(EPD_WIDTH/8)+x
+            for i in range(start, start+int(w/8)):
+                buffer.append(frame[i])
+
+        return buffer
+
+    def display_part_frame(self, frame, x, y, w, h):
         self.send_command(TCON_RESOLUTION)
         self.send_data(EPD_WIDTH >> 8)
         self.send_data(EPD_WIDTH & 0xff)        #176      
@@ -251,7 +269,80 @@ class EPD:
         self.send_data(EPD_HEIGHT & 0xff)       #264
 
         if (frame != None):
-            self.send_command(PARTIAL_START_TRANSMISSION_1)
+            self.send_command(PARTIAL_DATA_START_TRANSMISSION_1)
+            self.delay_ms(2)
+            self.send_data(x>>8)
+            self.delay_ms(2)
+            self.send_data(x&0xF8)
+
+            self.delay_ms(2)
+            self.send_data(y>>8)
+            self.delay_ms(2)
+            self.send_data(y)
+
+            self.delay_ms(2)
+            self.send_data(w>>8)
+            self.delay_ms(2)
+            self.send_data(w&0xF8)
+
+            self.delay_ms(2)
+            self.send_data(h>>8)
+            self.delay_ms(2)
+            self.send_data(h)
+            self.delay_ms(2)
+
+            frame = self.get_partial_buffer(frame, x, y, w, h)
+            for i in range(0, len(frame)):
+                self.send_data(frame[i])
+                #self.delay_ms(2)
+
+            self.send_command(PARTIAL_DATA_START_TRANSMISSION_2)
+            self.delay_ms(2)
+            self.send_data(x>>8)
+            self.delay_ms(2)
+            self.send_data(x&0xF8)
+
+            self.delay_ms(2)
+            self.send_data(y>>8)
+            self.delay_ms(2)
+            self.send_data(y)
+
+            self.delay_ms(2)
+            self.send_data(w>>8)
+            self.delay_ms(2)
+            self.send_data(w&0xF8)
+
+            self.delay_ms(2)
+            self.send_data(h>>8)
+            self.delay_ms(2)
+            self.send_data(h)
+            self.delay_ms(2)
+
+            for i in range(0, len(frame)):
+                self.send_data(0)
+                #self.delay_ms(2)
+
+        self.send_command(PARTIAL_DISPLAY_REFRESH)
+        self.delay_ms(2)
+        self.send_data(x>>8)
+        self.delay_ms(2)
+        self.send_data(x&0xF8)
+
+        self.delay_ms(2)
+        self.send_data(y>>8)
+        self.delay_ms(2)
+        self.send_data(y)
+
+        self.delay_ms(2)
+        self.send_data(w>>8)
+        self.delay_ms(2)
+        self.send_data(w&0xF8)
+
+        self.delay_ms(2)
+        self.send_data(h>>8)
+        self.delay_ms(2)
+        self.send_data(h)
+        self.delay_ms(2)
 
     def display_frame(self, frame):
         self.send_command(TCON_RESOLUTION)

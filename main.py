@@ -69,11 +69,11 @@ epd = epd2in7b.EPD()
 frame = []
 
 class Screen(Enum):
-  LIVE = 0,
+  MAIN = 0,
   GALLERY = 1,
   PHOTO = 2
 
-ui = Screen.LIVE
+ui = Screen.GALLERY
 redraw = False
 
 def screen_init(epd, frame):
@@ -147,7 +147,7 @@ def screen_draw_ui(epd, frame):
   #avoid useless refreshing
   redraw = False
 
-  if ui == Screen.LIVE:
+  if ui == Screen.MAIN:
     screen_draw_rectangle(epd, frame, 30, 15, 155, 60, COLORED, False)
     screen_draw_rectangle(epd, frame, 31, 16, 154, 59, COLORED, False)
     screen_draw_text(epd, frame, base_font, "TAKE A PHOTO", 35, 20, COLORED, 16)
@@ -227,7 +227,7 @@ def keys_init():
 #KEYS
 
 def main():
-    global epd, frame
+    global epd, frame, base_font
     global KEY1, KEY2, KEY3, KEY4, HKEY
     global redraw, ui
 
@@ -240,11 +240,22 @@ def main():
 
     #init screen
     screen_init(epd, frame)
-    screen_draw_welcome(epd, frame)
-    screen_sleep(epd, 2000)
+    #screen_draw_welcome(epd, frame)
+    #screen_sleep(epd, 2000)
 
     #first ui draw
     redraw = True
+
+    #test here
+    screen_clear(epd, frame)
+    frame = screen_draw_image(epd, get_next_image())
+    screen_display(epd, frame)
+    screen_sleep(epd, 2000)
+
+    screen_draw_text(epd, frame, base_font, "BACK", 50, 50, COLORED, 13)
+    epd.display_part_frame(frame, 50, 50, 50, 50)
+
+    return
 
     while True:
       #key routine
@@ -252,8 +263,8 @@ def main():
         print("SHOT")
       elif HKEY == KEY2:
         print("BACK")
-        if ui != Screen.LIVE:
-          ui = Screen.LIVE
+        if ui != Screen.MAIN:
+          ui = Screen.MAIN
           redraw = True
       elif HKEY == KEY3:
         print("NEXT");
