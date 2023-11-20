@@ -1,2 +1,3 @@
 sudo apt install python3-spidev
 sudo apt install python3-epdif
+sudo apt install python3-opencv

@@ -5,6 +5,26 @@ from PIL import ImageDraw
 from enum import Enum
 import os
 import RPi.GPIO as GPIO
+from picamera import PiCamera
+from datetime import datetime
+
+#CAMERA
+
+def camera_take():
+  camera = PiCamera()
+
+  now = datetime.now()
+  name = now.strftime("P_%Y_%m_%d_%H_%M_%S")
+  camera.capture(f"{gallery_normal_path}/{name}.jpg")
+
+  print(f"Saved {name}.jpg")
+
+  gallery_black(f"{name}.jpg")
+
+  print(f"Converted {name}.jpg")
+  camera.close()
+
+#CAMERA
 
 #GALLERY
 gallery_path = "GALLERY/black"
@@ -14,18 +34,20 @@ count = 0
 gallery = []
 
 def gallery_init():
-  global gallery_path, gallery, count, index
+  global gallery, count
   gallery = os.listdir(gallery_path)
+
   count = len(gallery)
+  print(f"{count} images loaded")
+  print(gallery)
 
 def gallery_black(name):
-  global gallery_normal_path, gallery_path
   image = Image.open(gallery_normal_path+"/"+name).convert('L')
   image = image.resize((176, 264))
   image.save(gallery_path+"/"+name, "BMP")
 
 def get_next_image():
-  global gallery_path, gallery, index, count
+  global index
 
   #reset
   if index >= count: index = 0
@@ -41,7 +63,7 @@ def get_next_image():
   return image
 
 def get_prev_image():
-  global gallery_path, gallery, index, count
+  global index
 
   #reset
   if index >= count: index = 0
@@ -70,10 +92,9 @@ frame = []
 
 class Screen(Enum):
   MAIN = 0,
-  GALLERY = 1,
-  PHOTO = 2
+  GALLERY = 1
 
-ui = Screen.GALLERY
+ui = Screen.MAIN
 redraw = False
 
 def screen_init(epd, frame):
@@ -140,7 +161,7 @@ def screen_draw_image(epd, image):
   return frame
 
 def screen_draw_ui(epd, frame):
-  global  count
+  global count
   global KEY1, KEY2, KEY3, KEY4, HKEY
   global redraw
 
@@ -240,27 +261,17 @@ def main():
 
     #init screen
     screen_init(epd, frame)
-    #screen_draw_welcome(epd, frame)
-    #screen_sleep(epd, 2000)
+    screen_draw_welcome(epd, frame)
+    screen_sleep(epd, 1000)
 
     #first ui draw
     redraw = True
-
-    #test here
-    screen_clear(epd, frame)
-    frame = screen_draw_image(epd, get_next_image())
-    screen_display(epd, frame)
-    screen_sleep(epd, 2000)
-
-    screen_draw_text(epd, frame, base_font, "BACK", 50, 50, COLORED, 13)
-    epd.display_part_frame(frame, 50, 50, 50, 50)
-
-    return
 
     while True:
       #key routine
       if HKEY == KEY1:
         print("SHOT")
+        camera_take()
       elif HKEY == KEY2:
         print("BACK")
         if ui != Screen.MAIN:
