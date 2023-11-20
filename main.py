@@ -160,7 +160,7 @@ def screen_draw_image(epd, image):
   frame = epd.get_frame_buffer(image)
   return frame
 
-def screen_draw_ui(epd, frame):
+def screen_draw_ui(epd, frame, dir):
   global count
   global KEY1, KEY2, KEY3, KEY4, HKEY
   global redraw
@@ -208,9 +208,9 @@ def screen_draw_ui(epd, frame):
     if count == 0:
       screen_draw_text(epd, frame, base_font, "EMPTY GALLERY", 28, 20, COLORED, 16)
     else:
-      if HKEY == KEY3:
+      if dir == 1:
         frame = screen_draw_image(epd, get_next_image())
-      elif HKEY == KEY4:
+      elif dir == -1:
         frame = screen_draw_image(epd, get_prev_image())
     screen_display(epd, frame)
 
@@ -257,44 +257,45 @@ def main():
 
     #init images
     gallery_init()
-    #gallery_black("qwe.jpg")
 
     #init screen
     screen_init(epd, frame)
-    screen_draw_welcome(epd, frame)
-    screen_sleep(epd, 1000)
+    #screen_draw_welcome(epd, frame)
+    #screen_sleep(epd, 1000)
 
     #first ui draw
     redraw = True
+    dir = None
 
     while True:
       #key routine
       if HKEY == KEY1:
         print("SHOT")
+        HKEY = 0
         camera_take()
       elif HKEY == KEY2:
         print("BACK")
+        HKEY = 0
         if ui != Screen.MAIN:
           ui = Screen.MAIN
           redraw = True
       elif HKEY == KEY3:
         print("NEXT");
+        HKEY = 0
+        dir = 1
         ui = Screen.GALLERY
         redraw = True
       elif HKEY == KEY4:
         print("PREV");
+        HKEY = 0
+        dir = -1
         ui = Screen.GALLERY
         redraw = True
-      else:
-        HKEY = 0
 
       #refresh ui
       if redraw:
         screen_clear(epd, frame)
-        screen_draw_ui(epd, frame)
-
-      #clear key
-      HKEY = 0
+        screen_draw_ui(epd, frame, dir)
 
 if __name__ == '__main__':
     main()
