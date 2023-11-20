@@ -35,6 +35,6 @@ def epd_init():
     GPIO.setup(CS_PIN, GPIO.OUT)
     GPIO.setup(BUSY_PIN, GPIO.IN)
 
-    SPI.max_speed_hz = 4000000
+    SPI.max_speed_hz = 2000000
     SPI.mode = 0b00
     return 0

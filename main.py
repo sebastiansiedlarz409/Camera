@@ -15,6 +15,7 @@ def camera_take():
 
   now = datetime.now()
   name = now.strftime("P_%Y_%m_%d_%H_%M_%S")
+  camera.color_effects = (128,128)
   camera.capture(f"{gallery_normal_path}/{name}.jpg")
 
   print(f"Saved {name}.jpg")
@@ -42,7 +43,7 @@ def gallery_init():
   print(gallery)
 
 def gallery_black(name):
-  image = Image.open(gallery_normal_path+"/"+name).convert('L')
+  image = Image.open(gallery_normal_path+"/"+name)
   image = image.resize((176, 264))
   image.save(gallery_path+"/"+name, "BMP")
 
