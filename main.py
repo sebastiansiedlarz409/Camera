@@ -99,11 +99,11 @@ def get_next_image():
   image = gallery_path + "/" + gallery[index]
 
   oled_clear()
-  oled_draw_text(base_font, gallery[index], 5, 2, 12)
+  oled_draw_text(base_font, "#" + gallery[index], 5, 2, 10)
   index += 1
   if index >= count: 
     index = 0
-  oled_draw_text(base_font, gallery[index], 5, 15, 12)
+  oled_draw_text(base_font, " " + gallery[index], 5, 15, 10)
   oled_display()
 
   return image
@@ -120,11 +120,11 @@ def get_prev_image():
   image = gallery_path + "/" + gallery[index]
 
   oled_clear()
-  oled_draw_text(base_font, gallery[index], 5, 2, 12)
+  oled_draw_text(base_font, " " + gallery[index], 5, 15, 10)
   index -= 1
   if index < 0:
     index = count - 1
-  oled_draw_text(base_font, gallery[index], 5, 15, 12)
+  oled_draw_text(base_font, "#" + gallery[index], 5, 2, 10)
   oled_display()
 
   return image
@@ -183,6 +183,7 @@ def screen_draw_ui(dir):
       screen_draw_text(base_font, "EMPTY GALLERY", 35, 70, 44)
       screen_display()
     else:
+        print(f"Draw from gallery {target_image}")
         screen_draw_image(target_image)
 
 #DRAWING
