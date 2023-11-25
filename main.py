@@ -1,12 +1,12 @@
+import os
 import epd4in2
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw
 from enum import Enum
-import os
-import RPi.GPIO as GPIO
 from picamera import PiCamera
 from datetime import datetime
+import RPi.GPIO as GPIO
 
 #CAMERA
 
@@ -14,7 +14,7 @@ def camera_take():
   camera = PiCamera()
 
   now = datetime.now()
-  name = now.strftime("P_%Y_%m_%d_%H_%M_%S")
+  name = now.strftime("P_%Y%m%d_%H%M%S")
   camera.color_effects = (128,128)
   camera.capture(f"{gallery_normal_path}/{name}.jpg")
 
@@ -45,7 +45,7 @@ def gallery_init():
 def gallery_black(name):
   image = Image.open(gallery_normal_path+"/"+name).convert('L')
   image = image.resize((400, 300))
-  image.save(gallery_path+"/"+name, "BMP")
+  image.save(gallery_path+"/"+name, "JPG")
 
 def get_next_image():
   global index
@@ -115,11 +115,9 @@ def screen_draw_text(font_path, text, x, y, font_size):
 def screen_draw_image(image):
   screen_clear()
   img = Image.open(image)
-  frame.paste(img, (50,10))
+  epd.display(epd.getbuffer(img))
 
 def screen_draw_ui(dir):
-  global count
-  global KEY1, KEY2, KEY3, KEY4, HKEY
   global redraw
 
   #avoid useless refreshing
@@ -131,16 +129,13 @@ def screen_draw_ui(dir):
 
     screen_display()
   elif ui == Screen.GALLERY:
-    gallery_init()
-    screen_clear()
     if count == 0:
       screen_draw_text(base_font, "EMPTY GALLERY", 35, 70, 44)
     else:
       if dir == 1:
-        screen_draw_image(get_next_image())
+        screen_draw_image('GALLERY/black/asd.jpg')
       elif dir == -1:
-        screen_draw_image(get_prev_image())
-    screen_display()
+        screen_draw_image('GALLERY/black/asd.jpg')
 
 #DRAWING
 
