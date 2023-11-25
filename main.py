@@ -45,7 +45,7 @@ def gallery_init():
 def gallery_black(name):
   image = Image.open(gallery_normal_path+"/"+name).convert('L')
   image = image.resize((400, 300))
-  image.save(gallery_path+"/"+name, "JPG")
+  image.save(gallery_path+"/"+name, "JPEG")
 
 def get_next_image():
   global index
@@ -56,7 +56,7 @@ def get_next_image():
   if count == 0: return None
   print("Loading "+str(index)+": "+gallery[index])
 
-  image = Image.open(gallery_path + "/" + gallery[index])
+  image = gallery_path + "/" + gallery[index]
   index += 1
 
   if index >= count: index = 0
@@ -72,7 +72,7 @@ def get_prev_image():
   if count == 0: return None
   print("Loading "+str(index)+": "+gallery[index])
 
-  image = Image.open(gallery_path + "/" + gallery[index])
+  image = gallery_path + "/" + gallery[index]
   index -= 1
 
   if index < 0: index = count - 1
@@ -133,9 +133,9 @@ def screen_draw_ui(dir):
       screen_draw_text(base_font, "EMPTY GALLERY", 35, 70, 44)
     else:
       if dir == 1:
-        screen_draw_image('GALLERY/black/asd.jpg')
+        screen_draw_image(get_next_image())
       elif dir == -1:
-        screen_draw_image('GALLERY/black/asd.jpg')
+        screen_draw_image(get_prev_image())
 
 #DRAWING
 
@@ -187,7 +187,7 @@ def main():
 
     #init images
     gallery_init()
-    #gallery_black("asd.jpg")
+    gallery_black("asd.jpg")
 
     #init screen
     screen_init()
