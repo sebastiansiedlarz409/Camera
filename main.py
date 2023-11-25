@@ -25,6 +25,8 @@ def camera_take():
   print(f"Converted {name}.jpg")
   camera.close()
 
+  screen_draw_image(f"{gallery_path}/{name}.jpg")
+
 #CAMERA
 
 #GALLERY
@@ -131,6 +133,7 @@ def screen_draw_ui(dir):
   elif ui == Screen.GALLERY:
     if count == 0:
       screen_draw_text(base_font, "EMPTY GALLERY", 35, 70, 44)
+      screen_display()
     else:
       if dir == 1:
         screen_draw_image(get_next_image())
@@ -187,7 +190,6 @@ def main():
 
     #init images
     gallery_init()
-    gallery_black("asd.jpg")
 
     #init screen
     screen_init()
@@ -200,8 +202,9 @@ def main():
       #key routine
       if HKEY == KEY1:
         print("SHOT")
+        camera_take()
+        gallery_init()
         HKEY = 0
-        #camera_take()
       elif HKEY == KEY2:
         print("BACK")
         HKEY = 0
