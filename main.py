@@ -1,4 +1,5 @@
 import os
+import time
 import busio
 import epd4in2
 from board import SCL, SDA
@@ -47,21 +48,20 @@ def camera_take():
   camera = PiCamera()
 
   now = datetime.now()
-  name = now.strftime("P_%Y%m%d_%H%M%S")
-  camera.color_effects = (128,128)
+  name = now.strftime("P%Y%m%d_%H%M%S")
   camera.capture(f"{gallery_normal_path}/{name}.jpg")
 
   print(f"Saved {name}.jpg")
 
   gallery_black(f"{name}.jpg")
 
-  print(f"Converted {name}.jpg")
   camera.close()
 
   oled_clear()
-  oled_draw_text(base_font, name, 5, 2, 12)
+  oled_draw_text(base_font, name, 2, 2, 11)
   oled_display()
 
+  screen_clear()
   screen_draw_image(f"{gallery_path}/{name}.jpg")
 
 #CAMERA
@@ -99,12 +99,13 @@ def get_next_image():
   image = gallery_path + "/" + gallery[index]
 
   oled_clear()
-  oled_draw_text(base_font, "#" + gallery[index], 5, 2, 10)
+  oled_draw_text(base_font, f"[{index}] ", 2, 2, 11)
+  oled_draw_text(base_font, gallery[index].split(".")[0], 2, 15, 11)
+  oled_display()
+
   index += 1
   if index >= count: 
     index = 0
-  oled_draw_text(base_font, " " + gallery[index], 5, 15, 10)
-  oled_display()
 
   return image
 
@@ -120,12 +121,12 @@ def get_prev_image():
   image = gallery_path + "/" + gallery[index]
 
   oled_clear()
-  oled_draw_text(base_font, " " + gallery[index], 5, 15, 10)
+  oled_draw_text(base_font, f"[{index}] ", 2, 2, 11)
+  oled_draw_text(base_font, gallery[index].split(".")[0], 2, 15, 11)
+  oled_display()
   index -= 1
   if index < 0:
     index = count - 1
-  oled_draw_text(base_font, "#" + gallery[index], 5, 2, 10)
-  oled_display()
 
   return image
 
@@ -181,7 +182,7 @@ def screen_draw_ui(dir):
     screen_display()
   elif ui == Screen.GALLERY:
     if count == 0:
-      screen_draw_text(cool_font, "EMPTY GALLERY", 35, 70, 44)
+      screen_draw_text(cool_font, "EMPTY GALLERY", 8, 70, 44)
       screen_display()
     else:
         print(f"Draw from gallery {target_image}")
@@ -237,6 +238,7 @@ def main():
 
     #init images
     gallery_init()
+    gallery_black("asd.jpg")
 
     #init screen
     screen_init()
@@ -244,7 +246,7 @@ def main():
     #init oled
     oled_init()
     oled_clear()
-    oled_draw_text(base_font, "GALLERY", 15,2, 20)
+    oled_draw_text(base_font, "PiCamera", 18,2, 20)
     oled_display()
 
     #first ui draw
