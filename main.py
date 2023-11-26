@@ -133,7 +133,8 @@ def get_prev_image():
 
 #DRAWING
 
-base_font = '/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf'
+base_font = '/usr/share/fonts/truetype/freefont/DejaVuSans.ttf'
+cool_font = 'Pacifico.ttf'
 
 epd = None
 frame = None
@@ -174,13 +175,13 @@ def screen_draw_ui(dir):
   redraw = False
 
   if ui == Screen.MAIN:
-    screen_draw_text(base_font, "TAKE A PHOTO", 35, 70, 46)
-    screen_draw_text(base_font, "AND WAIT :)", 50, 200, 46)
+    screen_draw_text(cool_font, "TAKE A PHOTO", 8, 40, 46)
+    screen_draw_text(cool_font, "AND WAIT :)", 30, 150, 46)
 
     screen_display()
   elif ui == Screen.GALLERY:
     if count == 0:
-      screen_draw_text(base_font, "EMPTY GALLERY", 35, 70, 44)
+      screen_draw_text(cool_font, "EMPTY GALLERY", 35, 70, 44)
       screen_display()
     else:
         print(f"Draw from gallery {target_image}")

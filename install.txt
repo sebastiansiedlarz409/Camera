@@ -1,4 +1,5 @@
 sudo apt install python3-spidev
-sudo apt install python3-epdif
-sudo apt install python3-opencv
+sudo apt install git
+sudo apt install python3-pip
+sudo apt install python3-pil
 sudo pip3 install adafruit-circuitpython-ssd1306
