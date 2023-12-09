@@ -46,11 +46,13 @@ def oled_draw_text(font_path, text, x, y, font_size):
 
 def camera_take():
   camera = PiCamera()
+  camera.rotation = 180
+  
+  name = "1"
+  if count > 0:
+    name = str(int(gallery[count-1].split(".")[0])+1)
 
-  now = datetime.now()
-  name = now.strftime("P%Y%m%d_%H%M%S")
   camera.capture(f"{gallery_normal_path}/{name}.jpg")
-
   print(f"Saved {name}.jpg")
 
   gallery_black(f"{name}.jpg")
@@ -58,7 +60,8 @@ def camera_take():
   camera.close()
 
   oled_clear()
-  oled_draw_text(base_font, name, 2, 2, 11)
+  oled_draw_text(base_font, f"[LAST]", 2, 2, 11)
+  oled_draw_text(base_font, f"{name}.jpg", 2, 15, 11)
   oled_display()
 
   screen_clear()
@@ -67,8 +70,8 @@ def camera_take():
 #CAMERA
 
 #GALLERY
-gallery_path = "GALLERY/black"
-gallery_normal_path = "GALLERY/norm"
+gallery_path = "/home/user/ProjectASD/GALLERY/black"
+gallery_normal_path = "/home/user/ProjectASD/GALLERY/norm"
 index = 0
 count = 0
 gallery = []
@@ -99,8 +102,8 @@ def get_next_image():
   image = gallery_path + "/" + gallery[index]
 
   oled_clear()
-  oled_draw_text(base_font, f"[{index}] ", 2, 2, 11)
-  oled_draw_text(base_font, gallery[index].split(".")[0], 2, 15, 11)
+  oled_draw_text(base_font, f"[{index+1}] ", 2, 2, 11)
+  oled_draw_text(base_font, gallery[index], 2, 15, 11)
   oled_display()
 
   index += 1
@@ -121,9 +124,10 @@ def get_prev_image():
   image = gallery_path + "/" + gallery[index]
 
   oled_clear()
-  oled_draw_text(base_font, f"[{index}] ", 2, 2, 11)
-  oled_draw_text(base_font, gallery[index].split(".")[0], 2, 15, 11)
+  oled_draw_text(base_font, f"[{index+1}] ", 2, 2, 11)
+  oled_draw_text(base_font, gallery[index], 2, 15, 11)
   oled_display()
+
   index -= 1
   if index < 0:
     index = count - 1
@@ -135,7 +139,7 @@ def get_prev_image():
 #DRAWING
 
 base_font = '/usr/share/fonts/truetype/freefont/DejaVuSans.ttf'
-cool_font = 'Pacifico.ttf'
+cool_font = '/home/user/ProjectASD/Pacifico.ttf'
 
 epd = None
 frame = None
@@ -238,7 +242,6 @@ def main():
 
     #init images
     gallery_init()
-    gallery_black("asd.jpg")
 
     #init screen
     screen_init()
@@ -246,7 +249,7 @@ def main():
     #init oled
     oled_init()
     oled_clear()
-    oled_draw_text(base_font, "PiCamera", 18,2, 20)
+    oled_draw_text(base_font, "MartiCam", 18,2, 20)
     oled_display()
 
     #first ui draw
