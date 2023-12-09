@@ -47,7 +47,7 @@ def oled_draw_text(font_path, text, x, y, font_size):
 def camera_take():
   camera = PiCamera()
   camera.rotation = 180
-  
+
   name = "1"
   if count > 0:
     name = str(int(gallery[count-1].split(".")[0])+1)
@@ -79,7 +79,7 @@ target_image = ""
 
 def gallery_init():
   global gallery, count
-  gallery = os.listdir(gallery_path)
+  gallery = sorted(os.listdir(gallery_path))
 
   count = len(gallery)
   print(f"{count} images loaded")
