@@ -245,6 +245,10 @@ def main():
     #init keys
     keys_init()
 
+    #boot led off
+    GPIO.setup(21, GPIO.OUT)
+    GPIO.output(21, GPIO.LOW)
+
     #init images
     gallery_init()
 
