@@ -72,7 +72,7 @@ def camera_take():
 #GALLERY
 gallery_path = "/home/user/ProjectASD/GALLERY/black"
 gallery_normal_path = "/home/user/ProjectASD/GALLERY/norm"
-index = 0
+index = -1
 count = 0
 gallery = []
 target_image = ""
@@ -97,6 +97,11 @@ def get_next_image():
   if index >= count: index = 0
 
   if count == 0: return None
+
+  index += 1
+  if index >= count: 
+    index = 0
+
   print("Loading "+str(index)+": "+gallery[index])
 
   image = gallery_path + "/" + gallery[index]
@@ -105,10 +110,6 @@ def get_next_image():
   oled_draw_text(base_font, f"[{index+1}] ", 2, 2, 11)
   oled_draw_text(base_font, gallery[index], 2, 15, 11)
   oled_display()
-
-  index += 1
-  if index >= count: 
-    index = 0
 
   return image
 
@@ -119,6 +120,14 @@ def get_prev_image():
   if index >= count: index = 0
 
   if count == 0: return None
+
+  if index == -1:
+    index = count - 1
+  else:
+    index -= 1
+    if index < 0:
+      index = count - 1
+
   print("Loading "+str(index)+": "+gallery[index])
 
   image = gallery_path + "/" + gallery[index]
@@ -127,10 +136,6 @@ def get_prev_image():
   oled_draw_text(base_font, f"[{index+1}] ", 2, 2, 11)
   oled_draw_text(base_font, gallery[index], 2, 15, 11)
   oled_display()
-
-  index -= 1
-  if index < 0:
-    index = count - 1
 
   return image
 
@@ -273,13 +278,13 @@ def main():
           ui = Screen.GALLERY
           redraw = True
       elif HKEY == KEY3:
-        print("NEXT");
-        HKEY = 0
-        target_image = get_next_image()
-      elif HKEY == KEY4:
         print("PREV");
         HKEY = 0
         target_image = get_prev_image()
+      elif HKEY == KEY4:
+        print("NEXT");
+        HKEY = 0
+        target_image = get_next_image()
 
       #refresh ui
       if redraw:
